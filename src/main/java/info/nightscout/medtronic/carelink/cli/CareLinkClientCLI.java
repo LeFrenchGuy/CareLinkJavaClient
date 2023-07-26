@@ -67,7 +67,7 @@ public class CareLinkClientCLI {
                 .desc("CareLink password.")
                 .build());
         
-        //a - patient username
+        //t - patient username
         options.addOption(
                 Option.builder(OPTION_PATIENTID)
                 .required(true)
