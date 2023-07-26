@@ -16,6 +16,7 @@ public class CareLinkClientCLI {
     private static final String OPTION_COUNTRY = "c";
     private static final String OPTION_USERNAME = "u";
     private static final String OPTION_PASSWORD = "p";
+    private static final String OPTION_PATIENTID = "t";
     private static final String OPTION_OUTPUT = "o";
     private static final String OPTION_REPEAT = "r";
     private static final String OPTION_DATA = "d";
@@ -64,6 +65,15 @@ public class CareLinkClientCLI {
                 .longOpt("password")
                 .hasArg(true)
                 .desc("CareLink password.")
+                .build());
+        
+        //a - patient username
+        options.addOption(
+                Option.builder(OPTION_PATIENTID)
+                .required(true)
+                .longOpt("patientId")
+                .hasArg(true)
+                .desc("Patient username.")
                 .build());
 
         //o - Output folder
@@ -128,6 +138,8 @@ public class CareLinkClientCLI {
                         .hasArg(false)
                         .desc("Dump response for data Json exception.")
                         .build());
+        
+       
 
         return options;
 
@@ -171,7 +183,7 @@ public class CareLinkClientCLI {
                 //Execute client
                 callCareLinkClient(
                         verbose,
-                        cmd.getOptionValue(OPTION_USERNAME), cmd.getOptionValue(OPTION_PASSWORD), cmd.getOptionValue(OPTION_COUNTRY),
+                        cmd.getOptionValue(OPTION_USERNAME), cmd.getOptionValue(OPTION_PASSWORD), cmd.getOptionValue(OPTION_PATIENTID),  cmd.getOptionValue(OPTION_COUNTRY),
                         downloadSession, downloadRecentData,
                         anonymize,
                         folder,
@@ -188,12 +200,12 @@ public class CareLinkClientCLI {
 
     }
 
-    private static void callCareLinkClient(boolean verbose, String username, String password, String country, Boolean downloadSessionInfo, Boolean downloadData, boolean anonymize, String folder, int repeat, int wait, boolean dumpJsonException){
+    private static void callCareLinkClient(boolean verbose, String username, String password, String patientId, String country, Boolean downloadSessionInfo, Boolean downloadData, boolean anonymize, String folder, int repeat, int wait, boolean dumpJsonException){
 
         CareLinkClient client = null;
         RecentData recentData = null;
 
-        client = new CareLinkClient(username, password, country);
+        client = new CareLinkClient(username, password, country, patientId);
         if(verbose)printLog("Client created!");
 
         if(client.login()) {

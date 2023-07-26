@@ -7,6 +7,7 @@ import info.nightscout.medtronic.carelink.message.*;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -25,6 +26,7 @@ public class CareLinkClient {
     //Authentication data
     protected String carelinkUsername;
     protected String carelinkPassword;
+    protected String carelinkPatientId;
     protected String carelinkCountry;
 
     //Session info
@@ -102,12 +104,12 @@ public class CareLinkClient {
     }
 
 
-    public CareLinkClient(String carelinkUsername, String carelinkPassword, String carelinkCountry) {
+    public CareLinkClient(String carelinkUsername, String carelinkPassword, String carelinkCountry, String patientId) {
 
         this.carelinkUsername = carelinkUsername;
         this.carelinkPassword = carelinkPassword;
         this.carelinkCountry = carelinkCountry;
-
+        this.carelinkPatientId = patientId;
         // Create main http client with CookieJar
         this.httpClient = new OkHttpClient.Builder()
                 .cookieJar(new SimpleOkHttpCookieJar())
@@ -121,12 +123,13 @@ public class CareLinkClient {
     public RecentData getRecentData() {
 
         // Force login to get basic info
-        if(getAuthorizationToken() != null) {
+        if(getAuthorizationToken() != null) {        	
             if (CountryUtils.isUS(carelinkCountry) || sessionMonitorData.isBle())
                 return this.getConnectDisplayMessage(this.sessionProfile.username, this.sessionUser.getUserRole(),
-                        sessionCountrySettings.blePereodicDataEndpoint);
+                        sessionCountrySettings.blePereodicDataEndpoint, this.carelinkPatientId);
             else
                 return this.getLast24Hours();
+                
         }
         else {
             return null;
@@ -356,7 +359,7 @@ public class CareLinkClient {
     }
 
     // Periodic data from CareLink Cloud
-    public RecentData getConnectDisplayMessage(String username, String role, String endpointUrl) {
+    public RecentData getConnectDisplayMessage(String username, String role, String endpointUrl, String patientId) {
 
         RequestBody requestBody = null;
         Gson gson = null;
@@ -366,6 +369,9 @@ public class CareLinkClient {
         userJson = new JsonObject();
         userJson.addProperty("username", username);
         userJson.addProperty("role", role);
+        if(patientId != null) {
+            userJson.addProperty("patientId", patientId);
+        }
 
         gson = new GsonBuilder().create();
 
@@ -456,7 +462,7 @@ public class CareLinkClient {
                 if (response.isSuccessful()) {
                     responseBody = response.body().string();
                     setLastResponseBody(responseBody);
-                    data = new GsonBuilder().create().fromJson(responseBody, dataClass);
+                    data = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ss").create().fromJson(responseBody, dataClass);
                     this.lastDataSuccess = true;
                 }
                 response.close();
